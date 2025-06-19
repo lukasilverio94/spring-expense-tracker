@@ -1,4 +1,9 @@
 package com.dev.expensetracker.domain.dto;
 
-public record CategoryRequestDTO(String name){
+import java.util.UUID;
+
+public record CategoryRequestDTO(
+        String name,
+        UUID userId
+    ){
 }
