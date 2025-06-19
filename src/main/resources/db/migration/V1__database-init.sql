@@ -22,7 +22,7 @@ create table expense
 (
     expense_id  bigserial primary key,
     description varchar(255),
-    date        timestamp not null,
+    date_time        timestamp not null,
     amount      float     not null,
     user_id     uuid      not null,
     category_id bigint    not null,
