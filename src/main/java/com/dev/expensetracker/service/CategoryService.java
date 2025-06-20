@@ -7,7 +7,6 @@ import com.dev.expensetracker.domain.entity.Category;
 import com.dev.expensetracker.domain.mapper.CategoryMapper;
 import com.dev.expensetracker.exception.NotFoundException;
 import com.dev.expensetracker.repository.CategoryRepository;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
