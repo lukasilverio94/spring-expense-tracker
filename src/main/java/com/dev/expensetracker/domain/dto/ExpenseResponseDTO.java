@@ -9,8 +9,6 @@ public record ExpenseResponseDTO(
         String description,
         LocalDateTime dateTime,
         BigDecimal amount,
-        UUID userId,
-        String userEmail,
         Long categoryId,
         String categoryName,
         LocalDateTime createdAt,
