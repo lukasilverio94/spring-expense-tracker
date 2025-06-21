@@ -1,5 +1,6 @@
 package com.dev.expensetracker.exception;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -18,13 +19,20 @@ public class GlobalExceptionHandler {
     /*
    Build the response entity to reuse in all other methods that handles exception
     */
-    public ResponseEntity<Object> buildResponseEntity(HttpStatus status, String message) {
+    public ResponseEntity<Object> buildResponseEntity(HttpStatus status, String message, List<String> details) {
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", status.value());
         body.put("error", status.getReasonPhrase());
         body.put("message", message);
+        if (details != null && !details.isEmpty()) {
+            body.put("details", details);
+        }
         return new ResponseEntity<>(body, status);
+    }
+
+    public ResponseEntity<Object> buildResponseEntity(HttpStatus status, String message) {
+        return buildResponseEntity(status, message, null);
     }
 
     @ExceptionHandler(NotFoundException.class)
@@ -32,27 +40,27 @@ public class GlobalExceptionHandler {
         return buildResponseEntity(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Object> handleGenericException(Exception ex) {
-        return buildResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<Object> handleEntityNotFoundException(EntityNotFoundException ex) {
+        return buildResponseEntity(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     // validation exceptions
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Object> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    public ResponseEntity<Object> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
         List<String> errors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
                 .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
                 .collect(Collectors.toList());
 
-        Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.BAD_REQUEST.value());
-        body.put("error", HttpStatus.BAD_REQUEST.getReasonPhrase());
-        body.put("message", "Validation failed");
-        body.put("details", errors);
-
-        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+        return buildResponseEntity(HttpStatus.BAD_REQUEST, ex.getMessage(), errors);
     }
+
+    // not handled exceptions (generic)
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Object> handleGenericException(Exception ex) {
+        return buildResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+    }
+
 }
