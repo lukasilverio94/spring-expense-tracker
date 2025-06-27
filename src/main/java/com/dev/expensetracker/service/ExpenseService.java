@@ -2,12 +2,12 @@ package com.dev.expensetracker.service;
 
 import com.dev.expensetracker.domain.dto.ExpenseRequestDTO;
 import com.dev.expensetracker.domain.dto.ExpenseResponseDTO;
+import com.dev.expensetracker.domain.entity.AppUser;
 import com.dev.expensetracker.domain.entity.Category;
 import com.dev.expensetracker.domain.entity.Expense;
 import com.dev.expensetracker.domain.mapper.ExpenseMapper;
 import com.dev.expensetracker.domain.projection.ExpenseView;
 import com.dev.expensetracker.exception.NotFoundException;
-import com.dev.expensetracker.repository.CategoryRepository;
 import com.dev.expensetracker.repository.ExpenseRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -23,17 +23,22 @@ public class ExpenseService {
 
     private final ExpenseRepository expenseRepository;
     private final ExpenseMapper expenseMapper;
-    private final CategoryRepository categoryRepository;
+    private final CategoryService categoryService;
+    private final UserService userService;
 
-    public ExpenseService(ExpenseRepository expenseRepository, ExpenseMapper expenseMapper, CategoryRepository categoryRepository) {
+    public ExpenseService(ExpenseRepository expenseRepository, ExpenseMapper expenseMapper, CategoryService categoryService, UserService userService) {
         this.expenseRepository = expenseRepository;
         this.expenseMapper = expenseMapper;
-        this.categoryRepository = categoryRepository;
+        this.categoryService = categoryService;
+        this.userService = userService;
     }
 
     @Transactional
     public ExpenseResponseDTO create(ExpenseRequestDTO dto) {
-        Expense expense = expenseMapper.toEntity(dto);
+        AppUser user = userService.findEntityByIdOrThrow(dto.userId());
+        Category category = categoryService.findEntityByIdOrThrow(dto.categoryId());
+
+        Expense expense = expenseMapper.toEntity(dto, user, category);
 
         if (expense.getDateTime() == null) {
             expense.setDateTime(LocalDateTime.now());
@@ -58,7 +63,7 @@ public class ExpenseService {
         expense.setDateTime(dto.dateTime());
 
         if (!expense.getCategory().getCategoryId().equals(dto.categoryId())) {
-            Category category = categoryRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Category not found"));
+            Category category = categoryService.findEntityByIdOrThrow(dto.categoryId());
             expense.setCategory(category);
         }
 

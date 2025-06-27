@@ -3,6 +3,7 @@ package com.dev.expensetracker.service;
 import com.dev.expensetracker.domain.dto.CategoryPatchRequestDTO;
 import com.dev.expensetracker.domain.dto.CategoryRequestDTO;
 import com.dev.expensetracker.domain.dto.CategoryResponseDTO;
+import com.dev.expensetracker.domain.entity.AppUser;
 import com.dev.expensetracker.domain.entity.Category;
 import com.dev.expensetracker.domain.mapper.CategoryMapper;
 import com.dev.expensetracker.exception.NotFoundException;
@@ -17,15 +18,18 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
+    private final UserService userService;
 
-    public CategoryService(CategoryRepository categoryRepository, CategoryMapper categoryMapper) {
+    public CategoryService(CategoryRepository categoryRepository, CategoryMapper categoryMapper, UserService userService) {
         this.categoryRepository = categoryRepository;
         this.categoryMapper = categoryMapper;
+        this.userService = userService;
     }
 
     @Transactional
     public CategoryResponseDTO create(CategoryRequestDTO requestDto) {
-        Category category = categoryMapper.toEntity(requestDto);
+        AppUser user = userService.findEntityByIdOrThrow(requestDto.userId());
+        Category category = categoryMapper.toEntity(requestDto, user);
         Category savedCategory = categoryRepository.save(category);
         return categoryMapper.toResponse(savedCategory);
     }
