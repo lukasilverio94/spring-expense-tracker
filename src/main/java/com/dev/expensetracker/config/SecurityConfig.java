@@ -46,9 +46,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(
                         auth -> auth
 
-                                .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                                .requestMatchers("/api/v1/auth/**").permitAll()
+                                .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
                                 // any other request must be authenticated
-                                .anyRequest().permitAll()
+                                .anyRequest().authenticated()
 
                 )
                 .httpBasic(Customizer.withDefaults())
