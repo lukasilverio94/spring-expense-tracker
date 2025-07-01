@@ -12,6 +12,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class CategoryService {
@@ -38,11 +39,16 @@ public class CategoryService {
         return categoryMapper.toResponse(findEntityByIdOrThrow(id));
     }
 
-    public List<CategoryResponseDTO> findAll() {
-        return categoryRepository.findAll()
-                .stream()
-                .map(categoryMapper::toResponse)
-                .toList();
+    // find all categories (without user id) - maybe use later as admin to check categories created
+//    public List<CategoryResponseDTO> findAll() {
+//        return categoryRepository.findAll()
+//                .stream()
+//                .map(categoryMapper::toResponse)
+//                .toList();
+//    }
+
+    public List<CategoryResponseDTO> findAllByUserId(UUID userId) {
+        return categoryRepository.findAllByUserUserId(userId);
     }
 
     @Transactional
@@ -65,5 +71,4 @@ public class CategoryService {
                 .orElseThrow(() -> new NotFoundException("Category with id " + id + " not found") {
                 });
     }
-
 }

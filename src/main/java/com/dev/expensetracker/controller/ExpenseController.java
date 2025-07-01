@@ -40,13 +40,14 @@ public class ExpenseController {
     }
 
     @GetMapping
-    public Page<ExpenseView> getExpensesByUser(
+    public Page<ExpenseView> getExpenses(
             @RequestParam UUID userId,
+            @RequestParam (required = false)Long categoryId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        return expenseService.findAllByUser(userId, pageable);
+        return expenseService.findByUserAndOptionalCategory(userId, categoryId, pageable);
     }
 
     @PutMapping("/{expenseId}")

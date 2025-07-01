@@ -51,8 +51,13 @@ public class ExpenseService {
         return findProjectedByIdOrThrow(expenseId);
     }
 
-    public Page<ExpenseView> findAllByUser(UUID userId, Pageable pageable) {
-        return expenseRepository.findAllByUserUserId(userId, pageable);
+    public Page<ExpenseView> findByUserAndOptionalCategory(UUID userId, Long categoryId, Pageable pageable) {
+        if (categoryId != null) {
+            return expenseRepository.findAllByUserIdAndCategoryId(userId, categoryId, pageable);
+        } else {
+            return expenseRepository.findAllByUserUserId(userId, pageable);
+        }
+
     }
 
     @Transactional

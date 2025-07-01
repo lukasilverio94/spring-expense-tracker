@@ -14,7 +14,7 @@ import java.util.UUID;
 public interface ExpenseRepository extends JpaRepository<Expense, Long> {
 
     @Query("""
-                SELECT 
+                SELECT\s
                     e.expenseId AS expenseId,
                     e.description AS description,
                     e.dateTime AS dateTime,
@@ -26,11 +26,11 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
                 FROM Expense e
                 JOIN e.category c
                 WHERE e.expenseId = :id
-            """)
+           \s""")
     Optional<ExpenseView> findProjectedById(@Param("id") Long id);
 
     @Query("""
-                SELECT 
+                SELECT\s
                     e.expenseId AS expenseId,
                     e.description AS description,
                     e.dateTime AS dateTime,
@@ -42,7 +42,27 @@ public interface ExpenseRepository extends JpaRepository<Expense, Long> {
                 FROM Expense e
                 JOIN e.category c
                 WHERE e.user.userId = :userId
-            """)
+           \s""")
     Page<ExpenseView> findAllByUserUserId(UUID userId, Pageable pageable);
+
+    @Query("""
+                SELECT\s
+                    e.expenseId AS expenseId,
+                    e.description AS description,
+                    e.dateTime AS dateTime,
+                    e.amount AS amount,
+                    c.categoryId AS categoryId,
+                    c.name AS categoryName,
+                    e.createdAt AS createdAt,
+                    e.updatedAt AS updatedAt
+                FROM Expense e
+                JOIN e.category c
+                WHERE e.user.userId = :userId
+                AND c.categoryId = :categoryId
+           \s""")
+    Page<ExpenseView> findAllByUserIdAndCategoryId(
+            @Param("userId") UUID userId,
+            @Param("categoryId") Long categoryId,
+            Pageable pageable);
 
 }

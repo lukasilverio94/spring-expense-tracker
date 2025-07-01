@@ -11,9 +11,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/category")
+@RequestMapping("/api/v1/categories")
 public class CategoryController {
 
     private final CategoryService categoryService;
@@ -37,10 +38,11 @@ public class CategoryController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CategoryResponseDTO>> findAll() {
-        List<CategoryResponseDTO> categories = categoryService.findAll();
+    public ResponseEntity<List<CategoryResponseDTO>> getCategoriesByUser(@RequestParam UUID userId) {
+        List<CategoryResponseDTO> categories = categoryService.findAllByUserId(userId);
         return ResponseEntity.ok(categories);
     }
+
 
     @PatchMapping("/{categoryId}")
     public ResponseEntity<CategoryResponseDTO> update(@PathVariable Long categoryId, @Valid @RequestBody CategoryPatchRequestDTO dto) {
