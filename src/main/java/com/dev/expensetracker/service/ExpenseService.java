@@ -1,7 +1,9 @@
 package com.dev.expensetracker.service;
 
+import com.dev.expensetracker.domain.dto.ExpenseFilterDTO;
 import com.dev.expensetracker.domain.dto.ExpenseRequestDTO;
 import com.dev.expensetracker.domain.dto.ExpenseResponseDTO;
+import com.dev.expensetracker.domain.dto.ExpenseSummaryResponseDTO;
 import com.dev.expensetracker.domain.entity.AppUser;
 import com.dev.expensetracker.domain.entity.Category;
 import com.dev.expensetracker.domain.entity.Expense;
@@ -9,13 +11,19 @@ import com.dev.expensetracker.domain.mapper.ExpenseMapper;
 import com.dev.expensetracker.domain.projection.ExpenseView;
 import com.dev.expensetracker.exception.NotFoundException;
 import com.dev.expensetracker.repository.ExpenseRepository;
+import com.dev.expensetracker.specs.ExpenseSpecifications;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.UUID;
 
 @Service
@@ -93,4 +101,35 @@ public class ExpenseService {
         return expenseRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Expense with id " + id + " not found"));
     }
+
+    public ExpenseSummaryResponseDTO getTotalExpensesByDateRange(UUID userId) {
+        LocalDate today = LocalDate.now();
+
+        LocalDateTime startOfMonth = today.with(TemporalAdjusters.firstDayOfMonth()).atStartOfDay();
+        LocalDateTime startOfWeek = today.with(DayOfWeek.MONDAY).atStartOfDay();
+        LocalDateTime startOfYear = today.with(TemporalAdjusters.firstDayOfYear()).atStartOfDay();
+        LocalDateTime now = LocalDateTime.now();
+
+        BigDecimal monthly = expenseRepository.sumByUserAndDateRange(userId, startOfMonth, now);
+        BigDecimal weekly = expenseRepository.sumByUserAndDateRange(userId, startOfWeek, now);
+        BigDecimal yearly = expenseRepository.sumByUserAndDateRange(userId, startOfYear, now);
+
+        return new ExpenseSummaryResponseDTO(
+                monthly != null ? monthly : BigDecimal.ZERO,
+                weekly != null ? weekly : BigDecimal.ZERO,
+                yearly != null ? yearly : BigDecimal.ZERO
+        );
+    }
+
+    public BigDecimal getTotalAmountByUserId(UUID userId) {
+        return expenseRepository.getTotalAmountByUserId(userId);
+    }
+
+    public Page<ExpenseResponseDTO> filterExpenses(ExpenseFilterDTO filterDTO, Pageable pageable) {
+        Specification<Expense> spec = ExpenseSpecifications.withFilters(filterDTO);
+        return expenseRepository.findAll(spec, pageable)
+                .map(expenseMapper::toResponse);
+    }
+
+
 }
