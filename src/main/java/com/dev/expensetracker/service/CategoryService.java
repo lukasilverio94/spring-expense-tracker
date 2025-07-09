@@ -39,13 +39,6 @@ public class CategoryService {
         return categoryMapper.toResponse(findEntityByIdOrThrow(id));
     }
 
-    // find all categories (without user id) - maybe use later as admin to check categories created
-//    public List<CategoryResponseDTO> findAll() {
-//        return categoryRepository.findAll()
-//                .stream()
-//                .map(categoryMapper::toResponse)
-//                .toList();
-//    }
 
     public List<CategoryResponseDTO> findAllByUserId(UUID userId) {
         return categoryRepository.findAllByUserUserId(userId);
